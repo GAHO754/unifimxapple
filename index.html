@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Registro de Clientes</title>
+
+  <link rel="icon" type="image/png" sizes="16x16" href="letra-w1.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="letra-w2.png">
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Firebase (compat v9) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <main class="card" role="main" aria-labelledby="title">
+    <div class="brand-bar"></div>
+    <div class="brand-head">
+      <img src="letra-w2.png" alt="Wendy’s" class="brand-logo" />
+      <div class="brand-title">
+        <h1 id="title">Regístrate</h1>
+        <p class="sub">Déjanos tus datos para recibir promociones.</p>
+      </div>
+    </div>
+
+    <form id="leadForm" novalidate>
+      <div class="field">
+        <label for="fullName">Nombre completo</label>
+        <input id="fullName" name="fullName" type="text" required minlength="3"
+               placeholder="Ingresa Nombre Completo" autocomplete="name" />
+        <small class="err" data-for="fullName"></small>
+      </div>
+
+      <div class="field">
+        <label for="email">Correo electrónico</label>
+        <input id="email" name="email" type="email" required
+               placeholder="Ingresa tu correo" autocomplete="email" />
+        <small class="err" data-for="email"></small>
+      </div>
+
+      <div class="field">
+        <label for="phone">Número de teléfono</label>
+        <input id="phone" name="phone" type="tel" required inputmode="numeric"
+               pattern="^[0-9]{10}$" placeholder="10 dígitos" autocomplete="tel" />
+        <small class="err" data-for="phone"></small>
+      </div>
+
+      <div class="field">
+        <label for="birthday">Fecha de cumpleaños</label>
+        <input id="birthday" name="birthday" type="date" required autocomplete="bday" />
+        <small class="err" data-for="birthday"></small>
+      </div>
+
+      <div class="checkbox">
+        <input id="terms" name="terms" type="checkbox" required />
+        <!-- ⬇️ Lleva a terminos.html en la misma pestaña -->
+        <label for="terms">
+          Acepto los <a id="termsLink" href="terminos.html" rel="noopener">Términos y Condiciones</a>
+        </label>
+      </div>
+      <small class="err" data-for="terms"></small>
+
+      <button id="btnSubmit" type="submit" aria-live="polite">Conectar</button>
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+    </form>
+  </main>
+
+
+  <!-- Config Firebase -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCun-sPsiEJMphATcHHZ_QFU4y_ZcGThYk",
+      authDomain: "wendysunifi.firebaseapp.com",
+      projectId: "wendysunifi",
+      storageBucket: "wendysunifi.firebasestorage.app",
+      messagingSenderId: "507383157033",
+      appId: "1:507383157033:web:24fdab81903e3c5cac6738",
+      measurementId: "G-K6FJVWCEYK"
+    };
+  </script>
+
+  <!-- 🔹 Autosave/Restore del formulario para no perder datos al ir a T&C -->
+  <script>
+    (function(){
+      const KEY = 'leadDraft';
+      const $ = id => document.getElementById(id);
+
+      // Restaurar borrador si existe
+      const draftRaw = localStorage.getItem(KEY);
+      if (draftRaw) {
+        try {
+          const d = JSON.parse(draftRaw);
+          if (d.fullName) $('fullName').value = d.fullName;
+          if (d.email)    $('email').value    = d.email;
+          if (d.phone)    $('phone').value    = d.phone;
+          if (d.birthday) $('birthday').value = d.birthday;
+          if (typeof d.termsAccepted === 'boolean') $('terms').checked = d.termsAccepted;
+        } catch(e){}
+      }
+
+      // Guardar al tipear/cambiar
+      const save = () => {
+        const data = {
+          fullName: $('fullName').value.trim(),
+          email: $('email').value.trim(),
+          phone: $('phone').value.trim(),
+          birthday: $('birthday').value,
+          termsAccepted: $('terms').checked
+        };
+        localStorage.setItem(KEY, JSON.stringify(data));
+      };
+      ['fullName','email','phone','birthday','terms'].forEach(id=>{
+        const el = $(id);
+        el && el.addEventListener('input', save);
+        el && el.addEventListener('change', save);
+      });
+
+      // Guardar justo antes de salir / navegar
+      window.addEventListener('beforeunload', save);
+
+      // Si abren T&C, asegúrate de guardar primero
+      const link = document.getElementById('termsLink');
+      if (link){
+        link.addEventListener('click', () => { save(); });
+      }
+
+      // Exponer helpers globales por si quieres borrar después del submit en app.js
+      window.__leadDraft = { KEY, clear: () => localStorage.removeItem(KEY) };
+    })();
+  </script>
+
+  <!-- Lógica del formulario (tu archivo existente) -->
+  <script src="app.js"></script>
+</body>
+</html>
